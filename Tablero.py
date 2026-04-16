@@ -1,6 +1,19 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
+# Estilo visual (fondo degradado bonito)
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        color: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("🎨 Zona Creativa: Dibuja lo que imagines")
 
 with st.sidebar:
@@ -24,10 +37,11 @@ with st.sidebar:
     color_option = st.selectbox("Color de trazo", ("Blanco", "Morado"))
     stroke_color = "#FFFFFF" if color_option == "Blanco" else "#8000FF"
 
-    # Background color
-    bg_color = st.color_picker("Color de fondo", "#000000")
+    # Fondo (solo blanco o negro)
+    bg_option = st.selectbox("Color de fondo", ("Negro", "Blanco"))
+    bg_color = "#000000" if bg_option == "Negro" else "#FFFFFF"
 
-# Create a canvas component with dynamic key
+# Canvas
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",
     stroke_width=stroke_width,
