@@ -1,15 +1,15 @@
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-st.title("Tablero para dibujo")
+st.title("🎨 Zona Creativa: Dibuja lo que imagines")
 
 with st.sidebar:
     st.subheader("Propiedades del Tablero")
 
-    # Canvas dimensions (moved to the top)
+    # Canvas dimensions (más grande)
     st.subheader("Dimensiones del Tablero")
-    canvas_width = st.slider("Ancho del tablero", 300, 700, 500, 50)
-    canvas_height = st.slider("Alto del tablero", 200, 600, 300, 50)
+    canvas_width = st.slider("Ancho del tablero", 600, 1200, 900, 50)
+    canvas_height = st.slider("Alto del tablero", 400, 900, 600, 50)
 
     # Drawing mode selector
     drawing_mode = st.selectbox(
@@ -20,8 +20,9 @@ with st.sidebar:
     # Stroke width slider
     stroke_width = st.slider("Selecciona el ancho de línea", 1, 30, 15)
 
-    # Stroke color picker
-    stroke_color = st.color_picker("Color de trazo", "#FFFFFF")
+    # Selector de color (solo blanco y morado)
+    color_option = st.selectbox("Color de trazo", ("Blanco", "Morado"))
+    stroke_color = "#FFFFFF" if color_option == "Blanco" else "#8000FF"
 
     # Background color
     bg_color = st.color_picker("Color de fondo", "#000000")
@@ -35,5 +36,5 @@ canvas_result = st_canvas(
     height=canvas_height,
     width=canvas_width,
     drawing_mode=drawing_mode,
-    key=f"canvas_{canvas_width}_{canvas_height}",  # Dynamic key based on dimensions
+    key=f"canvas_{canvas_width}_{canvas_height}",
 )
