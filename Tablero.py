@@ -1,125 +1,65 @@
 import tensorflow as tf
 from PIL import Image, ImageOps
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-# -----------------------------
-# CONFIGURACIÓN
-# -----------------------------
-st.set_page_config(
-    page_title='Reconocimiento de Dígitos',
-    layout='wide'
+# App
+def predictDigit(image):
+    model = tf.keras.models.load_model("model/handwritten.h5")
+    image = ImageOps.grayscale(image)
+    img = image.resize((28,28))
+    img = np.array(img, dtype='float32')
+    img = img/255
+    plt.imshow(img)
+    plt.show()
+    img = img.reshape((1,28,28,1))
+    pred= model.predict(img)
+    result = np.argmax(pred[0])
+    return result
+
+# Streamlit 
+st.set_page_config(page_title='Reconocimiento de Dígitos escritos a mano', layout='wide')
+st.title('Reconocimiento de Dígitos escritos a mano')
+st.subheader("Dibuja el digito en el panel  y presiona  'Predecir'")
+
+# Add canvas component
+# Specify canvas parameters in application
+drawing_mode = "freedraw"
+stroke_width = st.slider('Selecciona el ancho de línea', 1, 30, 15)
+stroke_color = '#FFFFFF' # Set background color to white
+bg_color = '#000000'
+
+# Create a canvas component
+canvas_result = st_canvas(
+    fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
+    stroke_width=stroke_width,
+    stroke_color=stroke_color,
+    background_color=bg_color,
+    height=200,
+    width=200,
+    key="canvas",
 )
 
-# -----------------------------
-# ESTILOS
-# -----------------------------
-st.markdown("""
-    <style>
-    .titulo {
-        font-size: 45px;
-        font-weight: bold;
-        color: #00C9A7;
-    }
-    .subtitulo {
-        font-size: 20px;
-        color: #CCCCCC;
-    }
-    .resultado {
-        font-size: 40px;
-        color: #FFD700;
-        font-weight: bold;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# -----------------------------
-# CARGAR MODELO UNA VEZ
-# -----------------------------
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model("model/handwritten.h5")
-
-model = load_model()
-
-# -----------------------------
-# FUNCIÓN DE PREDICCIÓN
-# -----------------------------
-def predictDigit(image):
-    # Convertir correctamente de RGBA a escala de grises
-    image = image.convert("L")
-    image = ImageOps.invert(image)  # importante para fondo negro
-
-    img = image.resize((28, 28))
-    img = np.array(img, dtype='float32') / 255.0
-    img = img.reshape((1, 28, 28, 1))
-
-    pred = model.predict(img)
-    return np.argmax(pred[0])
-
-# -----------------------------
-# INTERFAZ
-# -----------------------------
-st.markdown('<p class="titulo">Reconocimiento de Dígitos</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitulo">Dibuja un número y presiona predecir</p>', unsafe_allow_html=True)
-
-col1, col2 = st.columns([2,1])
-
-with col2:
-    st.markdown("### Opciones")
-    stroke_width = st.slider('Grosor del trazo', 1, 40, 20)
-
-with col1:
-    canvas_result = st_canvas(
-        stroke_width=stroke_width,
-        stroke_color='#FFFFFF',
-        background_color='#000000',
-        height=400,   # más grande
-        width=400,    # más grande
-        drawing_mode="freedraw",
-        key="canvas",
-    )
-
-# -----------------------------
-# BOTONES
-# -----------------------------
-col_btn1, col_btn2 = st.columns(2)
-
-with col_btn1:
-    predecir = st.button('Predecir')
-
-with col_btn2:
-    limpiar = st.button('Limpiar')
-
-# -----------------------------
-# LÓGICA
-# -----------------------------
-if predecir:
+# Add "Predict Now" button
+if st.button('Predecir'):
     if canvas_result.image_data is not None:
-        input_array = canvas_result.image_data
-
-        # Convertir a imagen PIL correctamente
-        image = Image.fromarray(input_array.astype('uint8'), 'RGBA')
-
-        resultado = predictDigit(image)
-
-        st.markdown(f'<p class="resultado">Resultado: {resultado}</p>', unsafe_allow_html=True)
+        input_numpy_array = np.array(canvas_result.image_data)
+        input_image = Image.fromarray(input_numpy_array.astype('uint8'),'RGBA')
+        input_image.save('prediction/img.png')
+        img = Image.open("prediction/img.png")
+        res = predictDigit(img)
+        st.header('El Digito es : ' + str(res))
     else:
-        st.warning('Dibuja un número primero.')
+        st.header('Por favor dibuja en el canvas el digito.')
 
-# Truco para limpiar canvas (recarga)
-if limpiar:
-    st.rerun()
-
-# -----------------------------
-# SIDEBAR
-# -----------------------------
-st.sidebar.markdown("## Acerca de")
-st.sidebar.write("""
-App de reconocimiento de dígitos usando redes neuronales.
-
-Librerías usadas:
-- streamlit
-- streamlit-drawable-canvas
-""")
+# Add sidebar
+st.sidebar.title("Acerca de:")
+st.sidebar.text("En esta aplicación se evalua ")
+st.sidebar.text("la capacidad de un RNA de reconocer") 
+st.sidebar.text("digitos escritos a mano.")
+st.sidebar.text("Basado en desarrollo de Vinay Uniyal")
+#st.sidebar.text("GitHub Repository")
+#st.sidebar.write("[GitHub Repo Link](https://github.com/Vinay2022/Handwritten-Digit-Recognition)")
